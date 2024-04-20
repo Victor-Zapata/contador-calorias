@@ -1,26 +1,45 @@
-import { useState } from "react"
+import { Dispatch, useState } from "react"
+import {v4 as uuidv4} from 'uuid';
 import { categories } from "../data/categories"
+import type { Form } from "../types"
+import { FormActions } from "../reducers/formReducer";
 
-//type InputEvent = React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>;
+type InputEvent = React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>;
+type FormProps = {
+    dispatch: Dispatch<FormActions>
+}
 
-const Form = () => {
-    const [form, setForm] = useState({
-        categorie: "",
-        activities: "",
-        calories: 0
-    })
+const initialState : Form = {
+    id: uuidv4(),
+    categorie: "Comida",
+    activities: "",
+    calories: 0
+}
 
-    const handleInputForm = (e) => {
+const Form = ({ dispatch }: FormProps) => {
+    const [form, setForm] = useState<Form>(initialState)
+
+    const handleInputForm = (e: InputEvent) => {
+        const isNumber = e.target.type === 'number'
         setForm({
             ...form,
-            [e.target.name]: e.target.value
+            [e.target.name]: isNumber ? + e.target.value : e.target.value
         })
-
     }
 
-    console.log(form)
+    const isValidForm = () => {
+        const { activities, calories } = form
+        return activities.trim() !== '' && calories > 0
+    }
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        dispatch({ type: "save-form", payload: { newForm: form } })
+        setForm({...initialState, id: uuidv4()})
+    }
+
     return (
-        <form className="space-y-5 bg-white shadow p-10 rounded-lg">
+        <form className="space-y-5 bg-white shadow p-10 rounded-lg" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 gap-3">
                 <label htmlFor="category" className="font-bold">Categoria:</label>
                 <select onChange={handleInputForm}
@@ -44,7 +63,7 @@ const Form = () => {
                     id="activity"
                     className="border border-slate-300 p-2 rounded-lg"
                     placeholder="Ej. Comida, Jugo de Naranja, Ensalada, Ejercicios, Pesas, Bicicleta"
-                    onChange={() => handleInputForm(event)}
+                    onChange={(e) => handleInputForm(e)}
                     name="activities"
                     value={form.activities}
                 />
@@ -57,15 +76,16 @@ const Form = () => {
                     id="calories"
                     className="border border-slate-300 p-2 rounded-lg"
                     placeholder="Calorías Ej. 300 o 500"
-                    onChange={() => handleInputForm(event)}
+                    onChange={(e) => handleInputForm(e)}
                     name="calories"
                     value={form.calories}
                 />
             </div>
             <input
                 type="submit"
-                className="bg-gray-700 hover:bg-gray-900 w-full p-2 font-bold uppercase text-white cursor-pointer"
-                value="guardar comida o guardar ejercicio"
+                className="bg-gray-700 disabled:opacity-25 hover:bg-gray-900 w-full p-2 font-bold uppercase text-white cursor-pointer"
+                value={form.categorie === 'Comida' ? "guardar comida" : "guardar ejercicio"}
+                disabled={!isValidForm()}
             />
 
         </form>
