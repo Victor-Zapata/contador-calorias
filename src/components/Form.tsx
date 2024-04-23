@@ -1,23 +1,33 @@
-import { Dispatch, useState } from "react"
-import {v4 as uuidv4} from 'uuid';
+import { Dispatch, useEffect, useState } from "react"
+import { v4 as uuidv4 } from 'uuid';
 import { categories } from "../data/categories"
 import type { Form } from "../types"
-import { FormActions } from "../reducers/formReducer";
+import { FormActions, FormState } from "../reducers/formReducer";
 
 type InputEvent = React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>;
 type FormProps = {
     dispatch: Dispatch<FormActions>
+    state: FormState
 }
 
-const initialState : Form = {
+const initialState: Form = {
     id: uuidv4(),
     categorie: "Comida",
     activities: "",
     calories: 0
 }
 
-const Form = ({ dispatch }: FormProps) => {
+const Form = ({ dispatch, state }: FormProps) => {
     const [form, setForm] = useState<Form>(initialState)
+
+    useEffect(() => {
+        if (state.activId) {
+            const selectedActivity = state.activitiesForm.filter((activity) => activity.id === state.activId)[0]
+            setForm(selectedActivity)
+        }
+    }, [state.activId])
+
+
 
     const handleInputForm = (e: InputEvent) => {
         const isNumber = e.target.type === 'number'
@@ -35,7 +45,7 @@ const Form = ({ dispatch }: FormProps) => {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         dispatch({ type: "save-form", payload: { newForm: form } })
-        setForm({...initialState, id: uuidv4()})
+        setForm({ ...initialState, id: uuidv4() })
     }
 
     return (
