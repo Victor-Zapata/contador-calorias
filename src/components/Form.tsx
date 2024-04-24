@@ -33,7 +33,7 @@ const Form = ({ dispatch, state }: FormProps) => {
         const isNumber = e.target.type === 'number'
         setForm({
             ...form,
-            [e.target.name]: isNumber ? + e.target.value : e.target.value
+            [e.target.name]: isNumber ? +e.target.value : e.target.value
         })
     }
 
